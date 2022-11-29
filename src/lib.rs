@@ -2,15 +2,19 @@ use std::fmt::{Display, Formatter};
 use std::fs::File;
 use std::io;
 use std::io::Read;
+use crate::errors::ErrorFunc;
+use crate::lex::*;
 
+mod errors;
 mod lex;
 
+#[derive(PartialOrd, PartialEq)]
 pub enum Standard {
-    C89,
-    C99,
-    C11,
-    C17,
-    C23,
+    C89 = 1989,
+    C99 = 1999,
+    C11 = 2011,
+    C17 = 2017,
+    C23 = 2023,
 }
 
 #[derive(Debug, Clone)]
@@ -27,27 +31,29 @@ impl Display for Location {
 }
 
 pub struct Context {
-    input: String,
+    input: Vec<char>,
     position: usize,
     loc: Location,
-    errors: usize,
-    indent: usize,
     standard: Standard,
+    tokens: Vec<Token>,
+    warning_func: Option<ErrorFunc>,
+    error_func: Option<ErrorFunc>,
 }
 
 impl Context {
     pub fn new(input: String, file_name: String, standard: Standard) -> Self {
         Self {
-            input,
+            input: input.chars().collect(),
             position: 0,
             loc: Location {
                 file_name,
                 line: 1,
                 column: 0,
             },
-            errors: 0,
-            indent: 0,
             standard,
+            tokens: Vec::new(),
+            warning_func: None,
+            error_func: None,
         }
     }
 
@@ -56,16 +62,17 @@ impl Context {
         let mut buffer = String::new();
         f.read_to_string(&mut buffer)?;
         Ok(Self {
-            input: buffer,
+            input: buffer.chars().collect(),
             position: 0,
             loc: Location {
                 file_name: file_path,
                 line: 1,
                 column: 0,
             },
-            errors: 0,
-            indent: 0,
             standard,
+            tokens: Vec::new(),
+            warning_func: None,
+            error_func: None,
         })
     }
 }
