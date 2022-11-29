@@ -33,6 +33,7 @@ impl Display for Location {
 pub struct Context {
     input: Vec<char>,
     position: usize,
+    save_char: Option<char>,
     loc: Location,
     standard: Standard,
     tokens: Vec<Token>,
@@ -45,6 +46,7 @@ impl Context {
         Self {
             input: input.chars().collect(),
             position: 0,
+            save_char: None,
             loc: Location {
                 file_name,
                 line: 1,
@@ -64,6 +66,7 @@ impl Context {
         Ok(Self {
             input: buffer.chars().collect(),
             position: 0,
+            save_char: None,
             loc: Location {
                 file_name: file_path,
                 line: 1,

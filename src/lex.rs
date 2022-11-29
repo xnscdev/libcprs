@@ -1,157 +1,187 @@
 use crate::*;
 use crate::errors::Error;
-use crate::lex::Token::*;
+use crate::lex::TokenType::*;
 use crate::Standard::*;
 
+#[derive(Debug, PartialEq)]
 pub enum NumberSize {
     Normal,
     Long,
     Longer
 }
 
-pub enum Token {
-    CharLit(Location, char),
-    StringLit(Location, String),
-    IntLit(Location, u64, NumberSize),
-    FloatLit(Location, f64, NumberSize),
-    Identifier(Location, String),
-    LeftParen(Location),
-    RightParen(Location),
-    LeftBracket(Location),
-    RightBracket(Location),
-    LeftBrace(Location),
-    RightBrace(Location),
-    Semicolon(Location),
-    Comma(Location),
-    Dot(Location),
-    Arrow(Location),
-    Assign(Location),
-    AssignPlus(Location),
-    AssignMinus(Location),
-    AssignMul(Location),
-    AssignDiv(Location),
-    AssignRem(Location),
-    AssignShl(Location),
-    AssignShr(Location),
-    AssignAnd(Location),
-    AssignXor(Location),
-    AssignOr(Location),
-    AssignLogAnd(Location),
-    AssignLogOr(Location),
-    AssignLogNot(Location),
-    And(Location),
-    Xor(Location),
-    Or(Location),
-    Not(Location),
-    Eq(Location),
-    Ne(Location),
-    Lt(Location),
-    Le(Location),
-    Gt(Location),
-    Ge(Location),
-    Shl(Location),
-    Shr(Location),
-    Plus(Location),
-    Minus(Location),
-    Star(Location),
-    Div(Location),
-    Rem(Location),
-    Inc(Location),
-    Dec(Location),
-    KwdAlignas(Location),
-    KwdAlignof(Location),
-    KwdAtomic(Location),
-    KwdAuto(Location),
-    KwdBitInt(Location),
-    KwdBool(Location),
-    KwdBreak(Location),
-    KwdCase(Location),
-    KwdChar(Location),
-    KwdComplex(Location),
-    KwdConst(Location),
-    KwdConstexpr(Location),
-    KwdContinue(Location),
-    KwdDecimal128(Location),
-    KwdDecimal32(Location),
-    KwdDecimal64(Location),
-    KwdDefault(Location),
-    KwdDo(Location),
-    KwdDouble(Location),
-    KwdElse(Location),
-    KwdEnum(Location),
-    KwdExtern(Location),
-    KwdFalse(Location),
-    KwdFloat(Location),
-    KwdFor(Location),
-    KwdGeneric(Location),
-    KwdGoto(Location),
-    KwdIf(Location),
-    KwdImaginary(Location),
-    KwdInline(Location),
-    KwdInt(Location),
-    KwdLong(Location),
-    KwdNoreturn(Location),
-    KwdNullptr(Location),
-    KwdRegister(Location),
-    KwdRestrict(Location),
-    KwdReturn(Location),
-    KwdShort(Location),
-    KwdSigned(Location),
-    KwdSizeof(Location),
-    KwdStatic(Location),
-    KwdStaticAssert(Location),
-    KwdStruct(Location),
-    KwdSwitch(Location),
-    KwdThreadLocal(Location),
-    KwdTrue(Location),
-    KwdTypedef(Location),
-    KwdTypeof(Location),
-    KwdTypeofUnqual(Location),
-    KwdUnion(Location),
-    KwdUnsigned(Location),
-    KwdVoid(Location),
-    KwdVolatile(Location),
-    KwdWhile(Location),
+#[derive(Debug, PartialEq)]
+pub enum TokenType {
+    CharLit(char),
+    StringLit(String),
+    IntLit(u64, NumberSize),
+    FloatLit(f64, NumberSize),
+    Identifier(String),
+    LeftParen,
+    RightParen,
+    LeftBracket,
+    RightBracket,
+    LeftBrace,
+    RightBrace,
+    Semicolon,
+    Comma,
+    Dot,
+    Arrow,
+    Assign,
+    AssignPlus,
+    AssignMinus,
+    AssignMul,
+    AssignDiv,
+    AssignRem,
+    AssignShl,
+    AssignShr,
+    AssignAnd,
+    AssignXor,
+    AssignOr,
+    LogAnd,
+    LogOr,
+    LogNot,
+    And,
+    Xor,
+    Or,
+    Not,
+    Eq,
+    Ne,
+    Lt,
+    Le,
+    Gt,
+    Ge,
+    Shl,
+    Shr,
+    Plus,
+    Minus,
+    Star,
+    Div,
+    Rem,
+    Inc,
+    Dec,
+    KwdAlignas,
+    KwdAlignof,
+    KwdAtomic,
+    KwdAuto,
+    KwdBitInt,
+    KwdBool,
+    KwdBreak,
+    KwdCase,
+    KwdChar,
+    KwdComplex,
+    KwdConst,
+    KwdConstexpr,
+    KwdContinue,
+    KwdDecimal128,
+    KwdDecimal32,
+    KwdDecimal64,
+    KwdDefault,
+    KwdDo,
+    KwdDouble,
+    KwdElse,
+    KwdEnum,
+    KwdExtern,
+    KwdFalse,
+    KwdFloat,
+    KwdFor,
+    KwdGeneric,
+    KwdGoto,
+    KwdIf,
+    KwdImaginary,
+    KwdInline,
+    KwdInt,
+    KwdLong,
+    KwdNoreturn,
+    KwdNullptr,
+    KwdRegister,
+    KwdRestrict,
+    KwdReturn,
+    KwdShort,
+    KwdSigned,
+    KwdSizeof,
+    KwdStatic,
+    KwdStaticAssert,
+    KwdStruct,
+    KwdSwitch,
+    KwdThreadLocal,
+    KwdTrue,
+    KwdTypedef,
+    KwdTypeof,
+    KwdTypeofUnqual,
+    KwdUnion,
+    KwdUnsigned,
+    KwdVoid,
+    KwdVolatile,
+    KwdWhile,
+}
+
+#[derive(Debug)]
+pub struct Token {
+    pub token_type: TokenType,
+    pub loc: Location,
+}
+
+impl Token {
+    fn new(token_type: TokenType, loc: Location) -> Self {
+        Self {
+            token_type,
+            loc,
+        }
+    }
+}
+
+macro_rules! next_char_impl {
+    (fatal $self:expr, $func:ident) => {
+        match $self.$func() {
+            Some(c) => c,
+            None => {
+                $self.error(&$self.loc, Error::UnexpectedEOF);
+                return None
+            },
+        }
+    };
+    (done $self:expr, $token:expr, $func:ident) => {
+        match $self.$func() {
+            Some(c) => c,
+            None => return $token,
+        }
+    };
 }
 
 macro_rules! next_char {
-    (fatal $self:expr) => {
-        match $self.next_char() {
-            Some(c) => c,
-            None => {
-                $self.error(&$self.loc, Error::UnexpectedEOF);
-                None?
-            },
-        }
-    };
-    (done $self:expr, $token:expr) => {
-        match $self.next_char() {
-            Some(c) => c,
-            None => return $token,
-        }
-    };
+    (fatal $self:expr) => { next_char_impl!(fatal $self, next_char) };
+    (done $self:expr, $token:expr) => { next_char_impl!(fatal $self, next_char) };
 }
 
 macro_rules! next_char_esc {
-    (fatal $self:expr) => {
-        match $self.next_char_esc() {
-            Some(c) => c,
-            None => {
-                $self.error(&$self.loc, Error::UnexpectedEOF);
-                None?
+    (fatal $self:expr) => { next_char_impl!(fatal $self, next_char_esc) };
+    (done $self:expr, $token:expr) => { next_char_impl!(fatal $self, next_char_esc) };
+}
+
+macro_rules! build_op {
+    ($self:expr, $d:ident, $($c:expr, $e:ident),*) => {
+        match $self.next_char() {
+            Some(c) => match c {
+                $(
+                    $c => $e,
+                )*
+                _ => {
+                    $self.save_char(c);
+                    $d
+                },
             },
-        }
-    };
-    (done $self:expr, $token:expr) => {
-        match $self.next_char_esc() {
-            Some(c) => c,
-            None => return $token,
+            None => $d,
         }
     };
 }
 
 impl Context {
     fn next_char(&mut self) -> Option<char> {
+        if let Some(c) = self.save_char {
+            self.save_char = None;
+            return Some(c);
+        }
         if self.position >= self.input.len() {
             return None;
         }
@@ -168,8 +198,8 @@ impl Context {
         Some(c)
     }
 
-    fn save_char(&mut self) {
-        self.position -= 1;
+    fn save_char(&mut self, c: char) {
+        self.save_char = Some(c);
     }
 
     fn next_char_esc(&mut self) -> Option<(char, bool)> {
@@ -201,30 +231,89 @@ impl Context {
         if let Some(t) = self.tokens.pop() {
             return Some(t);
         }
-        let mut c = self.next_char()?;
-        while c.is_ascii_whitespace() {
-            c = self.next_char()?;
-        }
 
-        if c.is_ascii_alphabetic() || c == '_' {
-            return self.scan_word(c);
-        }
-        else if c.is_ascii_digit() {
-            return self.scan_number(c);
-        }
-        else if c == '\'' {
-            return self.scan_char();
-        }
-        else if c == '"' {
-            return self.scan_string();
-        }
+        loop {
+            let mut c = self.next_char()?;
+            while c.is_ascii_whitespace() {
+                c = self.next_char()?;
+            }
 
-        let loc = self.loc.clone();
-        match c {
-            _ => {
-                self.error(&loc, Error::BadToken);
-                None
-            },
+            if c.is_ascii_alphabetic() || c == '_' {
+                return self.scan_word(c);
+            }
+            else if c.is_ascii_digit() {
+                return self.scan_number(c);
+            }
+            else if c == '\'' {
+                return self.scan_char();
+            }
+            else if c == '"' {
+                return self.scan_string();
+            }
+
+            let loc = self.loc.clone();
+            return match c {
+                '+' => Some(Token::new(build_op! { self, Plus, '+', Inc, '=', AssignPlus }, loc)),
+                '-' => Some(Token::new(build_op! { self, Minus, '-', Dec, '=', AssignMinus, '>', Arrow }, loc)),
+                '<' => {
+                    let mut token = build_op! { self, Lt, '<', Shl, '=', Le };
+                    if token == Shl {
+                        token = build_op! { self, token, '=', AssignShl };
+                    }
+                    Some(Token::new(token, loc))
+                },
+                '>' => {
+                    let mut token = build_op! { self, Gt, '>', Shr, '=', Ge };
+                    if token == Shr {
+                        token = build_op! { self, token, '=', AssignShr };
+                    }
+                    Some(Token::new(token, loc))
+                },
+                '&' => Some(Token::new(build_op! { self, And, '&', LogAnd, '=', AssignAnd }, loc)),
+                '|' => Some(Token::new(build_op! { self, Or, '|', LogOr, '=', AssignOr }, loc)),
+                '^' => Some(Token::new(build_op! { self, Xor, '=', AssignXor }, loc)),
+                '=' => Some(Token::new(build_op! { self, Assign, '=', Eq }, loc)),
+                '!' => Some(Token::new(build_op! { self, LogNot, '=', Ne }, loc)),
+                '*' => Some(Token::new(build_op! { self, Star, '=', AssignMul }, loc)),
+                '/' => {
+                    match self.next_char() {
+                        Some(c) => {
+                            match c {
+                                '/' => {
+                                    while let Some(newline) = self.next_char() {
+                                        if newline == '\n' {
+                                            break;
+                                        }
+                                    }
+                                    self.save_char(c);
+                                    continue;
+                                },
+                                '=' => Some(Token::new(AssignDiv, loc)),
+                                _ => {
+                                    self.save_char(c);
+                                    Some(Token::new(Div, loc))
+                                }
+                            }
+                        },
+                        None => Some(Token::new(Div, loc)),
+                    }
+                },
+                '%' => Some(Token::new(build_op! { self, Rem, '=', AssignRem }, loc)),
+                '~' => Some(Token::new(Not, loc)),
+                '(' => Some(Token::new(LeftParen, loc)),
+                ')' => Some(Token::new(RightParen, loc)),
+                '[' => Some(Token::new(LeftBracket, loc)),
+                ']' => Some(Token::new(RightBracket, loc)),
+                '{' => Some(Token::new(LeftBrace, loc)),
+                '}' => Some(Token::new(RightBrace, loc)),
+                ';' => Some(Token::new(Semicolon, loc)),
+                ',' => Some(Token::new(Comma, loc)),
+                '.' => Some(Token::new(Dot, loc)),
+                _ => {
+                    self.error(&loc, Error::BadToken);
+                    continue;
+                },
+            }
         }
     }
 
@@ -239,72 +328,72 @@ impl Context {
                 None => break,
             }
             if !c.is_ascii_alphanumeric() && c != '_' {
-                self.save_char();
+                self.save_char(c);
                 break;
             }
         }
-        Some(match string.as_str() {
-            "alignas" if self.standard >= C23 => KwdAlignas(loc),
-            "_Alignas" if self.standard >= C11 => KwdAlignas(loc),
-            "alignof" if self.standard >= C23 => KwdAlignof(loc),
-            "_Alignof" if self.standard >= C11 => KwdAlignof(loc),
-            "_Atomic" if self.standard >= C11 => KwdAtomic(loc),
-            "auto" => KwdAuto(loc),
-            "_BitInt" => KwdBitInt(loc),
-            "bool" if self.standard >= C23 => KwdBool(loc),
-            "_Bool" if self.standard >= C99 => KwdBool(loc),
-            "break" => KwdBreak(loc),
-            "case" => KwdCase(loc),
-            "char" => KwdChar(loc),
-            "_Complex" if self.standard >= C99 => KwdComplex(loc),
-            "const" => KwdConst(loc),
-            "constexpr" if self.standard >= C23 => KwdConstexpr(loc),
-            "continue" => KwdContinue(loc),
-            "_Decimal128" if self.standard >= C23 => KwdDecimal128(loc),
-            "_Decimal32" if self.standard >= C23 => KwdDecimal32(loc),
-            "_Decimal64" if self.standard >= C23 => KwdDecimal64(loc),
-            "default" => KwdDefault(loc),
-            "do" => KwdDo(loc),
-            "double" => KwdDouble(loc),
-            "else" => KwdElse(loc),
-            "enum" => KwdEnum(loc),
-            "extern" => KwdExtern(loc),
-            "false" if self.standard >= C23 => KwdFalse(loc),
-            "float" => KwdFloat(loc),
-            "for" => KwdFor(loc),
-            "_Generic" if self.standard >= C11 => KwdGeneric(loc),
-            "goto" => KwdGoto(loc),
-            "if" => KwdIf(loc),
-            "_Imaginary" if self.standard >= C99 => KwdImaginary(loc),
-            "inline" if self.standard >= C99 => KwdInline(loc),
-            "int" => KwdInt(loc),
-            "long" => KwdLong(loc),
-            "_Noreturn" if self.standard >= C11 => KwdNoreturn(loc),
-            "nullptr" if self.standard >= C23 => KwdNullptr(loc),
-            "register" => KwdRegister(loc),
-            "restrict" if self.standard >= C99 => KwdRestrict(loc),
-            "return" => KwdReturn(loc),
-            "short" => KwdShort(loc),
-            "signed" => KwdSigned(loc),
-            "sizeof" => KwdSizeof(loc),
-            "static" => KwdStatic(loc),
-            "static_assert" if self.standard >= C23 => KwdStaticAssert(loc),
-            "_Static_assert" if self.standard >= C11 => KwdStaticAssert(loc),
-            "struct" => KwdStruct(loc),
-            "switch" => KwdSwitch(loc),
-            "thread_local" if self.standard >= C23 => KwdThreadLocal(loc),
-            "_Thread_local" if self.standard >= C11 => KwdThreadLocal(loc),
-            "true" if self.standard >= C23 => KwdTrue(loc),
-            "typedef" => KwdTypedef(loc),
-            "typeof" if self.standard >= C23 => KwdTypeof(loc),
-            "typeof_unqual" if self.standard >= C23 => KwdTypeofUnqual(loc),
-            "union" => KwdUnion(loc),
-            "unsigned" => KwdUnsigned(loc),
-            "void" => KwdVoid(loc),
-            "volatile" => KwdVolatile(loc),
-            "while" => KwdWhile(loc),
-            _ => Identifier(loc, string),
-        })
+        Some(Token::new(match string.as_str() {
+            "alignas" if self.standard >= C23 => KwdAlignas,
+            "_Alignas" if self.standard >= C11 => KwdAlignas,
+            "alignof" if self.standard >= C23 => KwdAlignof,
+            "_Alignof" if self.standard >= C11 => KwdAlignof,
+            "_Atomic" if self.standard >= C11 => KwdAtomic,
+            "auto" => KwdAuto,
+            "_BitInt" => KwdBitInt,
+            "bool" if self.standard >= C23 => KwdBool,
+            "_Bool" if self.standard >= C99 => KwdBool,
+            "break" => KwdBreak,
+            "case" => KwdCase,
+            "char" => KwdChar,
+            "_Complex" if self.standard >= C99 => KwdComplex,
+            "const" => KwdConst,
+            "constexpr" if self.standard >= C23 => KwdConstexpr,
+            "continue" => KwdContinue,
+            "_Decimal128" if self.standard >= C23 => KwdDecimal128,
+            "_Decimal32" if self.standard >= C23 => KwdDecimal32,
+            "_Decimal64" if self.standard >= C23 => KwdDecimal64,
+            "default" => KwdDefault,
+            "do" => KwdDo,
+            "double" => KwdDouble,
+            "else" => KwdElse,
+            "enum" => KwdEnum,
+            "extern" => KwdExtern,
+            "false" if self.standard >= C23 => KwdFalse,
+            "float" => KwdFloat,
+            "for" => KwdFor,
+            "_Generic" if self.standard >= C11 => KwdGeneric,
+            "goto" => KwdGoto,
+            "if" => KwdIf,
+            "_Imaginary" if self.standard >= C99 => KwdImaginary,
+            "inline" if self.standard >= C99 => KwdInline,
+            "int" => KwdInt,
+            "long" => KwdLong,
+            "_Noreturn" if self.standard >= C11 => KwdNoreturn,
+            "nullptr" if self.standard >= C23 => KwdNullptr,
+            "register" => KwdRegister,
+            "restrict" if self.standard >= C99 => KwdRestrict,
+            "return" => KwdReturn,
+            "short" => KwdShort,
+            "signed" => KwdSigned,
+            "sizeof" => KwdSizeof,
+            "static" => KwdStatic,
+            "static_assert" if self.standard >= C23 => KwdStaticAssert,
+            "_Static_assert" if self.standard >= C11 => KwdStaticAssert,
+            "struct" => KwdStruct,
+            "switch" => KwdSwitch,
+            "thread_local" if self.standard >= C23 => KwdThreadLocal,
+            "_Thread_local" if self.standard >= C11 => KwdThreadLocal,
+            "true" if self.standard >= C23 => KwdTrue,
+            "typedef" => KwdTypedef,
+            "typeof" if self.standard >= C23 => KwdTypeof,
+            "typeof_unqual" if self.standard >= C23 => KwdTypeofUnqual,
+            "union" => KwdUnion,
+            "unsigned" => KwdUnsigned,
+            "void" => KwdVoid,
+            "volatile" => KwdVolatile,
+            "while" => KwdWhile,
+            _ => Identifier(string),
+        }, loc))
     }
 
     fn scan_number(&mut self, first: char) -> Option<Token> {
@@ -335,7 +424,7 @@ impl Context {
                     }
                     c = match self.next_char() {
                         Some(c) => c,
-                        None => return Some(IntLit(loc, int_value, int_width)),
+                        None => return Some(Token::new(IntLit(int_value, int_width), loc)),
                     };
                 }
             }
@@ -349,7 +438,7 @@ impl Context {
                     int_value += c as u64 - '0' as u64;
                     c = match self.next_char() {
                         Some(c) => c,
-                        None => return Some(IntLit(loc, int_value, int_width)),
+                        None => return Some(Token::new(IntLit(int_value, int_width), loc)),
                     };
                 }
                 if !valid {
@@ -363,7 +452,7 @@ impl Context {
                 int_value += c as u64 - '0' as u64;
                 c = match self.next_char() {
                     Some(c) => c,
-                    None => return Some(IntLit(loc, int_value, int_width)),
+                    None => return Some(Token::new(IntLit(int_value, int_width), loc)),
                 };
             }
         }
@@ -384,7 +473,7 @@ impl Context {
                     }
                     c = match self.next_char() {
                         Some(c) => c,
-                        None => return Some(FloatLit(loc, float_value, float_width)),
+                        None => return Some(Token::new(FloatLit(float_value, float_width), loc)),
                     };
                 }
             }
@@ -394,7 +483,7 @@ impl Context {
                     float_value += decimal * (c as i32 - '0' as i32) as f64;
                     c = match self.next_char() {
                         Some(c) => c,
-                        None => return Some(FloatLit(loc, float_value, float_width)),
+                        None => return Some(Token::new(FloatLit(float_value, float_width), loc)),
                     }
                 }
             }
@@ -445,7 +534,7 @@ impl Context {
             }
 
             if eof {
-                return Some(FloatLit(loc, float_value, float_width));
+                return Some(Token::new(FloatLit(float_value, float_width), loc));
             }
         }
 
@@ -486,7 +575,7 @@ impl Context {
                     }
                 }
                 _ => {
-                    self.save_char();
+                    self.save_char(c);
                     break;
                 },
             }
@@ -494,10 +583,10 @@ impl Context {
         }
         
         if use_float {
-            Some(FloatLit(loc, float_value, float_width))
+            Some(Token::new(FloatLit(float_value, float_width), loc))
         }
         else {
-            Some(IntLit(loc, int_value, int_width))
+            Some(Token::new(IntLit(int_value, int_width), loc))
         }
     }
 
@@ -506,13 +595,13 @@ impl Context {
         let (mut c, mut escape) = next_char_esc!(fatal self);
         if c == '\'' && !escape {
             self.error(&loc, Error::EmptyCharLit);
-            return Some(CharLit(loc, '\0'));
+            return Some(Token::new(CharLit('\0'), loc));
         }
 
         let value = c;
         (c, escape) = next_char_esc!(fatal self);
         if c == '\'' && !escape {
-            return Some(CharLit(loc, value));
+            return Some(Token::new(CharLit(value), loc));
         }
 
         self.warning(&loc, Error::MulticharLiteral);
@@ -522,7 +611,7 @@ impl Context {
             int_value |= c as u64;
             (c, escape) = next_char_esc!(fatal self);
         }
-        Some(IntLit(loc, int_value, NumberSize::Normal))
+        Some(Token::new(IntLit(int_value, NumberSize::Normal), loc))
     }
 
     fn scan_string(&mut self) -> Option<Token> {
@@ -536,6 +625,6 @@ impl Context {
             string.push(c);
             (c, escape) = next_char_esc!(fatal self);
         }
-        Some(StringLit(loc, string))
+        Some(Token::new(StringLit(string), loc))
     }
 }
