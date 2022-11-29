@@ -36,3 +36,10 @@ fn comment_lex() {
     assert_token(&mut ctx, Rem, 1, 32);
     assert_token(&mut ctx, Identifier("this".into()), 2, 1);
 }
+
+#[test]
+fn alpha_lex() {
+    let mut ctx = Context::new("123identifier".into(), "<stdin>".into(), Standard::C99);
+    assert_token(&mut ctx, IntLit(123, NumberSize::Normal), 1, 1);
+    assert_token(&mut ctx, Identifier("identifier".into()), 1, 4);
+}
