@@ -285,8 +285,27 @@ impl Context {
                                             break;
                                         }
                                     }
-                                    self.save_char(c);
                                     continue;
+                                },
+                                '*' => {
+                                    let mut terminated = false;
+                                    while let Some(star) = self.next_char() {
+                                        if star == '*' {
+                                            if let Some(slash) = self.next_char() {
+                                                if slash == '/' {
+                                                    terminated = true;
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                    }
+                                    match terminated {
+                                        true => continue,
+                                        false => {
+                                            self.error(&loc, Error::UnterminatedComment);
+                                            return None;
+                                        },
+                                    }
                                 },
                                 '=' => Some(Token::new(AssignDiv, loc)),
                                 _ => {

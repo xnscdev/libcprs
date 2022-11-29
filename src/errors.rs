@@ -1,4 +1,5 @@
 use crate::*;
+use crate::errors::Error::*;
 
 pub enum Error {
     BadEscapeSequence,
@@ -11,21 +12,23 @@ pub enum Error {
     EmptyCharLit,
     UnexpectedEOF,
     NewlineInString,
+    UnterminatedComment,
 }
 
 impl Display for Error {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", match self {
-            Error::BadEscapeSequence => "invalid string escape sequence",
-            Error::MulticharLiteral => "multi-character literal",
-            Error::BadToken => "unexpected token",
-            Error::BadIntLitSuffix => "invalid suffix for integer literal",
-            Error::BadFloatLitSuffix => "invalid suffix for floating-point literal",
-            Error::BadExponent => "invalid exponent",
-            Error::BadOctalDigit => "invalid digit in octal integer literal",
-            Error::EmptyCharLit => "empty character literal",
-            Error::UnexpectedEOF => "unexpected end of input",
-            Error::NewlineInString => "newline in string literal",
+            BadEscapeSequence => "invalid string escape sequence",
+            MulticharLiteral => "multi-character literal",
+            BadToken => "unexpected token",
+            BadIntLitSuffix => "invalid suffix for integer literal",
+            BadFloatLitSuffix => "invalid suffix for floating-point literal",
+            BadExponent => "invalid exponent",
+            BadOctalDigit => "invalid digit in octal integer literal",
+            EmptyCharLit => "empty character literal",
+            UnexpectedEOF => "unexpected end of input",
+            NewlineInString => "newline in string literal",
+            UnterminatedComment => "unterminated comment",
         })
     }
 }
