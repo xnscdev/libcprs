@@ -115,17 +115,35 @@ pub enum Token {
 }
 
 macro_rules! next_char {
-    (fatal $self:expr, $loc:expr) => {
+    (fatal $self:expr) => {
         match $self.next_char() {
             Some(c) => c,
             None => {
-                $self.error($loc, Error::UnexpectedEOF);
+                $self.error(&$self.loc, Error::UnexpectedEOF);
                 None?
             },
         }
     };
     (done $self:expr, $token:expr) => {
         match $self.next_char() {
+            Some(c) => c,
+            None => return $token,
+        }
+    };
+}
+
+macro_rules! next_char_esc {
+    (fatal $self:expr) => {
+        match $self.next_char_esc() {
+            Some(c) => c,
+            None => {
+                $self.error(&$self.loc, Error::UnexpectedEOF);
+                None?
+            },
+        }
+    };
+    (done $self:expr, $token:expr) => {
+        match $self.next_char_esc() {
             Some(c) => c,
             None => return $token,
         }
@@ -159,7 +177,7 @@ impl Context {
         let backslash = self.next_char()?;
         match backslash {
             '\\' => {
-                let c = next_char!(fatal self, &loc);
+                let c = next_char!(fatal self);
                 match c {
                     'n' => Some(('\n', true)),
                     't' => Some(('\t', true)),
@@ -202,7 +220,12 @@ impl Context {
         }
 
         let loc = self.loc.clone();
-        None
+        match c {
+            _ => {
+                self.error(&loc, Error::BadToken);
+                None
+            },
+        }
     }
 
     fn scan_word(&mut self, first: char) -> Option<Token> {
@@ -298,10 +321,10 @@ impl Context {
         let mut c = first;
 
         if c == '0' {
-            c = next_char!(fatal self, &loc);
+            c = next_char!(fatal self);
             if c == 'x' || c == 'X' {
                 use_hex = true;
-                c = next_char!(fatal self, &loc);
+                c = next_char!(fatal self);
                 while c.is_ascii_hexdigit() {
                     int_value *= 16;
                     if c.is_ascii_digit() {
@@ -386,13 +409,13 @@ impl Context {
                 self.error(&loc, Error::BadExponent);
             }
 
-            c = next_char!(fatal self, &loc);
+            c = next_char!(fatal self);
             if c == '+' {
-                c = next_char!(fatal self, &loc);
+                c = next_char!(fatal self);
             }
             else if c == '-' {
                 neg_exponent = true;
-                c = next_char!(fatal self, &loc);
+                c = next_char!(fatal self);
             }
 
             if !c.is_ascii_digit() {
@@ -480,14 +503,14 @@ impl Context {
 
     fn scan_char(&mut self) -> Option<Token> {
         let loc = self.loc.clone();
-        let (mut c, mut escape) = self.next_char_esc()?;
+        let (mut c, mut escape) = next_char_esc!(fatal self);
         if c == '\'' && !escape {
             self.error(&loc, Error::EmptyCharLit);
             return Some(CharLit(loc, '\0'));
         }
 
         let value = c;
-        (c, escape) = self.next_char_esc()?;
+        (c, escape) = next_char_esc!(fatal self);
         if c == '\'' && !escape {
             return Some(CharLit(loc, value));
         }
@@ -497,7 +520,7 @@ impl Context {
         while c != '\'' || escape {
             int_value <<= 8;
             int_value |= c as u64;
-            (c, escape) = self.next_char_esc()?;
+            (c, escape) = next_char_esc!(fatal self);
         }
         Some(IntLit(loc, int_value, NumberSize::Normal))
     }
@@ -505,8 +528,14 @@ impl Context {
     fn scan_string(&mut self) -> Option<Token> {
         let loc = self.loc.clone();
         let (mut c, mut escape) = self.next_char_esc()?;
-        let string = String::new();
-        // TODO Finish implementing this
-        None
+        let mut string = String::new();
+        while c != '"' || escape {
+            if !escape && c == '\n' {
+                self.error(&loc, Error::NewlineInString);
+            }
+            string.push(c);
+            (c, escape) = next_char_esc!(fatal self);
+        }
+        Some(StringLit(loc, string))
     }
 }
